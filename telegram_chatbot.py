@@ -221,3 +221,51 @@ def order_command(message):
 @bot.message_handler(commands=["feedback"])
 def feedback_command(message):
     bot.reply_to(message, "We would love to hear your feedback! Please email us at feedback@onepoundassistant.online")
+
+
+@bot.message_handler(content_types=["photo"])
+def get_photo(message):
+    markup = types.InlineKeyboardMarkup()
+    button_website = types.InlineKeyboardButton("Link to the website", url="https://www.google.com.ua/")
+    markup.row(button_website)
+    button_correct = types.InlineKeyboardButton("Correct the text", callback_data="edit")
+    button_delete = types.InlineKeyboardButton("Delete the photo", callback_data="delete")
+    markup.row(button_correct, button_delete)
+    bot.reply_to(message, "This is a gorgeous photo!", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda callback: True)
+def callback_message(callback):
+    if callback.data == "edit":
+        bot.edit_message_text("Edited text", callback.message.chat.id, callback.message.message_id)
+    elif callback.data == "delete":
+        bot.delete_message(callback.message.chat.id, callback.message.message_id - 1)
+
+
+@bot.message_handler(content_types=["audio"])
+def get_photo(message):
+    bot.reply_to(message, "I like this song")
+
+
+@bot.message_handler(content_types=["video"])
+def get_photo(message):
+    bot.reply_to(message, "That is an awesome video! You can share with me more if you want.")
+
+
+@bot.message_handler(content_types=["document"])
+def document_received(message):
+    bot.reply_to(message, "Thank you for sharing the document!")
+
+
+@bot.message_handler(func=lambda message: True)
+def handle_messages(message):
+    if message.text.lower() == "hello":
+        bot.send_message(message.chat.id, f"Hello {message.from_user.first_name}. I am here to assist you.")
+    elif message.text.lower() == "id":
+        bot.reply_to(message, f"Your ID: {message.from_user.id}")
+    else:
+        bot.send_message(message.chat.id, "I'm sorry, that is an unknown command. "
+                                          "Type /commands to see a list of available commands.")
+
+
+bot.polling(none_stop=True)
