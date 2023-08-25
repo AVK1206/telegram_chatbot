@@ -3,7 +3,8 @@ from telebot import types
 from currency_converter import CurrencyConverter
 import sqlite3
 import webbrowser
-from cred import token
+import requests
+from cred import token, api_key
 
 bot = telebot.TeleBot(token)
 currency = CurrencyConverter()
@@ -117,6 +118,36 @@ def callback(call):
     connect.close()
 
     bot.send_message(call.message.chat.id, users_in_db)
+
+
+@bot.message_handler(commands=["weather"])
+def weather_command(message):
+    bot.send_message(message.chat.id, "Please enter the name of the city for weather information:")
+    bot.register_next_step_handler(message, get_weather)
+
+
+def get_weather(message):
+    city_name = message.text.strip()
+    api = api_key
+    base_url = "http://api.openweathermap.org/data/2.5/weather"
+    params = {"q": city_name, "appid": api, "units": "metric"}
+
+    response = requests.get(base_url, params=params)
+    weather_data = response.json()
+
+    if response.status_code == 200:
+        weather_description = weather_data["weather"][0]["description"]
+        temperature = weather_data["main"]["temp"]
+        humidity = weather_data["main"]["humidity"]
+
+        weather_message = f"Weather in {city_name}:\n" \
+                          f"Description: {weather_description}\n" \
+                          f"Temperature: {temperature}°C\n" \
+                          f"Humidity: {humidity}%"
+    else:
+        weather_message = "Sorry, unable to retrieve weather information at the moment."
+
+    bot.reply_to(message, weather_message)
 
 
 @bot.message_handler(commands=["start", "hello"])
