@@ -1,11 +1,13 @@
 import telebot
 from telebot import types
 from currency_converter import CurrencyConverter
+import sqlite3
 from cred import token
 
 bot = telebot.TeleBot(token)
 currency = CurrencyConverter()
 amount = 0
+name = None
 
 
 @bot.message_handler(commands=["convertcurrency"])
@@ -57,3 +59,60 @@ def another_currency(message):
     except Exception:
         bot.send_message(message.chat.id, "Something is wrong, please enter the amount")
         bot.register_next_step_handler(message, total)
+
+
+@bot.message_handler(commands=["users"])
+def users(message):
+    connect = sqlite3.connect("users.db")
+    cursor = connect.cursor()
+
+    cursor.execute(
+        "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, password TEXT)")
+
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+    bot.send_message(message.chat.id, "Hello. To register, please input your name:")
+    bot.register_next_step_handler(message, user_name)
+
+
+def user_name(message):
+    global name
+    name = message.text.strip()
+    bot.send_message(message.chat.id, "Please, input your password:")
+    bot.register_next_step_handler(message, user_password)
+
+
+def user_password(message):
+    password = message.text.strip()
+
+    connect = sqlite3.connect("users.db")
+    cursor = connect.cursor()
+
+    cursor.execute(f"INSERT INTO users (name, password) VALUES ('%s', '%s')" % (name, password))
+    connect.commit()
+    cursor.close()
+    connect.close()
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("List of users", callback_data="list_of_users"))
+    bot.send_message(message.chat.id, "The user is successfully registered!", reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "list_of_users")
+def callback(call):
+    connect = sqlite3.connect("users.db")
+    cursor = connect.cursor()
+
+    cursor.execute("SELECT * FROM users")
+    users_info = cursor.fetchall()
+
+    users_in_db = ""
+    for user in users_info:
+        users_in_db += f"Name: {user[1]} Password: {user[2]}\n"
+
+    cursor.close()
+    connect.close()
+
+    bot.send_message(call.message.chat.id, users_in_db)
