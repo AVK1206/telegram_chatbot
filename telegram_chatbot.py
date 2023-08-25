@@ -116,3 +116,59 @@ def callback(call):
     connect.close()
 
     bot.send_message(call.message.chat.id, users_in_db)
+
+
+@bot.message_handler(commands=["start", "hello"])
+def start_command(message):
+    markup = types.InlineKeyboardMarkup()
+    button_website = types.InlineKeyboardButton("Link to the website", url="https://onepoundassistant.online/")
+    button_about = types.InlineKeyboardButton("About the bot", callback_data="about")
+    button_commands = types.InlineKeyboardButton("Available commands", callback_data="commands")
+    markup.add(button_website)
+    markup.row(button_about, button_commands)
+    bot.send_message(message.chat.id, f"Hello {message.from_user.first_name}. How can I assist you today?",
+                     reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "about")
+def about_callback(call):
+    bot.send_message(call.message.chat.id, "This bot is designed to assist you with various tasks and information.")
+
+
+@bot.callback_query_handler(func=lambda call: call.data == "commands")
+def commands_callback(call):
+    bot.send_message(call.message.chat.id, "Here are some available commands:\n"
+                                           "/start - Start a conversation\n"
+                                           "/help - Get assistance\n"
+                                           "/website - Open our website\n"
+                                           "/order - Place an order\n"
+                                           "/feedback - Provide feedback\n"
+                                           "/about - Learn about the bot\n"
+                                           "/users - Register a user and view list of users\n"
+                                           "/weather - Find the current weather in the city\n"
+                                           "/convertcurrency - Calculate currency conversion\n"
+                                           "/commands - A list of available commands")
+
+
+@bot.message_handler(commands=["about"])
+def about_command(message):
+    bot.reply_to(message, "I am your friendly assistant bot. I can help you with various tasks and information!")
+
+
+@bot.message_handler(commands=["commands"])
+def commands_command(message):
+    bot.send_message(message.chat.id, "Here are some available commands:\n"
+                                      "/start - Start a conversation\n"
+                                      "/help - Get assistance\n"
+                                      "/website - Open our website\n"
+                                      "/order - Place an order\n"
+                                      "/feedback - Provide feedback\n"
+                                      "/about - Learn about the bot\n"
+                                      "/users - Register a user and view list of users\n"
+                                      "/weather - Find the current weather in the city\n"
+                                      "/convertcurrency - Calculate currency conversion\n"
+                                      "/commands - A list of available commands")
+
+
+
+
