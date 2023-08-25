@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 from currency_converter import CurrencyConverter
 import sqlite3
+import webbrowser
 from cred import token
 
 bot = telebot.TeleBot(token)
@@ -170,5 +171,22 @@ def commands_command(message):
                                       "/commands - A list of available commands")
 
 
+@bot.message_handler(commands=["help"])
+def help_command(message):
+    bot.send_message(message.chat.id, f"<b>How can I help you?</b> <em>Common information: <u>Your order</u></em>",
+                     parse_mode="html")
 
 
+@bot.message_handler(commands=["website", "site"])
+def website_command(message):
+    webbrowser.open("https://onepoundassistant.online/")
+
+
+@bot.message_handler(commands=["order"])
+def order_command(message):
+    bot.reply_to(message, "To place an order, please visit our website: https://onepoundassistant.online/order")
+
+
+@bot.message_handler(commands=["feedback"])
+def feedback_command(message):
+    bot.reply_to(message, "We would love to hear your feedback! Please email us at feedback@onepoundassistant.online")
